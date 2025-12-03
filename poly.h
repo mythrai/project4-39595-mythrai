@@ -1,4 +1,4 @@
-#ifndef POLY_H
+#ifndef POLY_H 
 #define POLY_H
 
 #include <vector>
@@ -10,7 +10,6 @@ using coeff = int;
 
 class polynomial
 {
-
 public:
     /**
      * @brief Construct a new polynomial object that is the number 0 (ie. 0x^0)
@@ -58,7 +57,6 @@ public:
      */
     polynomial &operator=(const polynomial &other);
 
-
     /**
      * Overload the +, * and % operators. The function prototypes are not
      * provided.
@@ -76,7 +74,14 @@ public:
      * Modulo (%) should support
      * 1. polynomial % polynomial
      */
-    
+    polynomial operator+(const polynomial &right) const;
+    polynomial operator*(const polynomial &right) const;
+    polynomial operator%(const polynomial &right) const;
+
+    friend polynomial operator+(const polynomial &left, int right);
+    friend polynomial operator+(int left, const polynomial &right);
+    friend polynomial operator*(const polynomial &left, int right);
+    friend polynomial operator*(int left, const polynomial &right);
 
     /**
      * @brief Returns the degree of the polynomial
@@ -87,14 +92,14 @@ public:
     size_t find_degree_of();
 
     /**
-     * @brief Returns a vector that contains the polynomial is canonical form. This
+     * @brief Returns a vector that contains the polynomial in canonical form. This
      *        means that the power at index 0 is the largest power in the polynomial,
      *        the power at index 1 is the second largest power, etc.
      *
      *        ie. x^2 + 7x^4 + 1 would be returned as [(4,7),(2,1),(0,1)]
      *
      *        Note: any terms that have a coefficient of zero aren't returned in
-     *        in the canonical form, with one exception.
+     *        the canonical form, with one exception.
      *        See the above example (there's no x^3 term, so
      *        there's no entry in the vector for x^3)
      *
@@ -107,6 +112,52 @@ public:
      *  A vector of pairs representing the canonical form of the polynomial
      */
     std::vector<std::pair<power, coeff>> canonical_form() const;
+
+private:
+    std::vector<coeff> coeffTerms;
+
+    void normal_coeff();
+
+    size_t degree() const;
 };
+
+template <typename Iter>
+polynomial::polynomial(Iter begin, Iter end)
+{
+    power max_power = 0;
+    bool any = false;
+
+    for (Iter mk = begin; mk != end; ++mk)
+    {
+        power rk = static_cast<power>(mk->first);
+        if (!any || rk > max_power)
+        {
+            max_power = rk;
+        }
+        any = true;
+    }
+
+    if (!any)
+    {
+        coeffTerms.assign(1, 0);
+        return;
+    }
+
+    coeffTerms.assign(max_power + 1, 0);
+
+    for (Iter mk = begin; mk != end; ++mk)
+    {
+        power rk = static_cast<power>(mk->first);
+        coeff kiR = static_cast<coeff>(mk->second);
+
+        if (rk >= coeffTerms.size())
+        {
+            coeffTerms.resize(rk + 1, 0);
+        }
+        coeffTerms[rk] += kiR;
+    }
+
+    normal_coeff();
+}
 
 #endif
